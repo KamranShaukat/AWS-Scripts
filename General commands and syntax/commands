@@ -1,0 +1,620 @@
+bmf325@909c4ac8ece3 rehydration % /usr/local/bin/python3.10 run_rehydration.py --file ec2_2023-3-22.csv
+============
+Sphinx successful command.
+
+ssh bmf325@root@ 10.6.79.99@sts-psmp-cde-pl.cloud.{domain name}
+
+
+https://pulse.{domain name}/pulse/ls/community/sphinx/post/6372219166261248
+==============
+Azure
+
+/opt/centrify/domain-join.sh ${centrify_group_name} AZURE >> /var/log/centrify_stacktrace.log 2>&1 &
+
+==================================
+
+# SSH
+mkdir -p /home/ubuntu/.ssh/
+curl -L https://github.cloud.{domain name}/kyle.keys | jq -r '.[] | .key' | tee -a /home/ubuntu/.ssh/authorized_keys
+chown -R ubuntu:ubuntu /home/ubuntu/.ssh/
+chmod 700 /home/ubuntu/.ssh/
+chmod 600 /home/ubuntu/.ssh/*
+
+Cat /opt/prebuild_depot/COFLinux/cof-functions
+
+
+ls -l /opt/prebuild_depot/COFLinux/cof-functions
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+aws ec2 describe-instance-attribute --attribute userData --instance-id i-0457975ce75d725c8 --profile 577742038445-GR_GG_COF_AWS_CoreEngineering --region us-west-2
+
+
+aws ecr delete-repository --repository-name ophelia-ui-test --force --profile 921164431940-GR_GG_COF_AWS_NP_CoreEngineering --region us-east-1
+
+
+Metadata options -
+
+aws ec2 describe-instances --region us-east-1 --instance-ids i-06fb889e492c97378 --query "Reservations[0].Instances[0].MetadataOptions" --profile 411954817574-GR_GG_COF_AWS_CoreEngineering
+
+
+
+
+aws ec2 describe-instances --query 'Reservations[].Instances[].{ASV: Tags[?Key==`ASV`].Value | [0], Role: Tags[?Key==`Billing by Role`].Value | [0]}' --output text
+
+aws ec2 describe-instances --region us-east-1 --filter "Name=tag: asvpubliccloudbastionhosts,Values=*" --profile 411954817574-GR_GG_COF_AWS_CoreEngineering
+
+
+
+Directory services retagging
+
+
+aws ds add-tags-to-resource --resource-id d-906726501c --tags Key=ASV,Value=ASVETOACTIVEDIRECTORY --region us-east-1 --profile 864634740237-GR_GG_COF_AWS_Prod_CoreEngineering
+
+aws ds add-tags-to-resource --resource-id d-906726501c --tags Key=OwnerContact,Value=3rdlvlactivedirectory@{domain name} --region us-east-1 --profile 864634740237-GR_GG_COF_AWS_Prod_CoreEngineering
+
+S3 bucket tagging
+
+Apply tags
+
+aws s3api put-bucket-tagging --bucket cf-templates-4adyni555a25-us-east-1 --tagging 'TagSet=[{Key=OwnerContact,Value=sprintteamsupercell@{domain name}},{Key=ASV,Value=ASVAWSPLATFORM}, {Key=CMDBEnvironment,Value=ENVPPAWSPLATFORM}, {Key=dataclassification,Value=company}]' --profile 050479700732-GR_GG_COF_AWS_NP_CoreEngineering
+
+Verify tags
+
+aws s3api get-bucket-tagging --bucket cf-templates-4adyni555a25-us-east-1 --profile 050479700732-GR_GG_COF_AWS_NP_CoreEngineering
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+et tokens:
+
+cloudsentry access get --browser chrome --ba asvpubliccloudbastionhosts --all --force --access-id CHG1613794
+
+-----------------------
+SSSD status check
+-----------------------
+
+systemctl status sssd
+
+--------------------------
+Sphinx join check
+
+ID (eid)
+
+
+#privilege access
+
+Sudo su  
+
+
+# go to logs
+
+Cd /var/log
+
+#look at startup configurations including user data deployment
+
+cat cloud-init-output.log
+
+#look at SSSD config file
+Cat configure_bastion_access.20220914-182512.log
+
+
+
+bash -x ./configure_activedirectory_access.sh -L -u "${ALLOWGROUPS}" -krb5nordns -f -donotusesite -site USAWSEAST2
+
+
+
+
+
+dig _ldap._tcp.USAWSWEST3._sites.{domain controller name} SRV +noall +answer
+==================
+Add user in linux
+==================
+useradd kamitest
+passwd kamitest
+
+Then set password
+Rama123
+
+Then gives Sudo su power
+
+echo 'ramatests ALL=(ALL) NOPASSWD: ALL' >>/etc/sudoers
+
+
+
+
+/etc/ssh/sshd_config
+cat /etc/ssh/sshd_config|grep AllowTcpForwarding
+
+------------------------------
+Instance vpc type:
+ 
+ls -l /opt/prebuild_depot/COFLinux/cof-functions
+-rwxr-xr-x. 1 root root 9045 Apr  7 16:22 /opt/prebuild_depot/COFLinux/cof-functions
+
+getproxy
+echo $ENV_NAME
+cat /opt/prebuild_depot/COFLinux/cof-functions
+
+vi temp-ssh
+
+---
+getproxy() {
+    . /opt/prebuild_depot/COFLinux/instance-vars
+
+    # Azure/GCP falls back to account type
+    local vpc_env="${INSTANCE_VPC_TYPE:-$ACCOUNT_TYPE}"
+    case "${vpc_env}" in
+        Sandbox)
+            env_val="dev"
+            ;;
+        DA)
+            env_val="prod"
+            ;;
+        prd)  # GCP
+            env_val="prod"
+            ;;
+        *)
+            env_val=$(echo "${vpc_env}" | awk '{print tolower($0)}')
+            ;;
+    esac
+
+    ENVPROXY="aws-proxy-${env_val}.cloud.{domain name}:8099"
+
+    if [[ "${ACCOUNT_DIVISION}" == "UK Card" ]]; then
+        region_number=$(echo "${INSTANCE_REGION}" | cut -d- -f3)
+        if [[ "(($ACCOUNT_VERSION))" -ge 30 ]]; then
+            case "${env_val}" in
+                dev|qa|precde)
+                    ENVPROXY="c1euw${region_number}-nonprodproxy.cloud.uk.{domain name}:9099"
+                ;;
+                prod|cde)
+                    ENVPROXY="c1euw${region_number}-cdehzprodproxy.cloud.uk.{domain name}:9099"
+                ;;
+            esac
+        elif [[ "(($ACCOUNT_VERSION))" -lt 30 ]]; then
+            case "${ACCOUNT_ID}" in
+                914404642895) # UKAWSHorizontalNonProd
+                    env_val="dev"
+                    ENVPROXY="c1euw${region_number}-hznonprodproxy.cloud.uk.{domain name}:9099"
+                    ;;
+                490959479985) # UKAWSHorizontalProd
+                    env_val="prod"
+                    ENVPROXY="c1euw${region_number}-hzprodproxy.cloud.uk.{domain name}:9099"
+                    ;;
+                589414389738) # UKAWSNonProd
+                    env_val="dev"
+                    ENVPROXY="c1euw${region_number}-nonprodproxy.cloud.uk.{domain name}:9099"
+                    ;;
+                125153831378) # UKAWSPreProd
+                    env_val="qa"
+                    ENVPROXY="c1euw${region_number}-preprodproxy.cloud.uk.{domain name}:9099"
+                    ;;
+                666755855008) # UKAWSProd
+                    env_val="prod"
+                    ENVPROXY="c1euw${region_number}-prodproxy.cloud.uk.{domain name}:9099"
+                    ;;
+                569583884908) # UKAWSSandbox
+                    env_val="dev"
+                    ENVPROXY="c1euw${region_number}-sboxproxy.cloud.uk.{domain name}:9099"
+                    ;;
+                811371471787) # UKAWSCDEHZProd
+                    env_val="cde"
+                    ENVPROXY="c1euw${region_number}-cdehzprodproxy.cloud.uk.{domain name}:9099"
+                    ;;
+                929854287620) # UKAWSCDEPreProd
+                    env_val="precde"
+                    ENVPROXY="c1euw${region_number}-cdepreprodproxy.cloud.uk.{domain name}:9099"
+                    ;;
+                841595354528) # UKAWSCDEProd
+                    env_val="cde"
+                    ENVPROXY="c1euw${region_number}-cdeprodproxy.cloud.uk.{domain name}:9099"
+                    ;;
+            esac
+        fi
+    fi
+
+    # Additional shell-scoped vars
+    ENV_NAME="${env_val}"
+    PROXY_URL=$(echo "${ENVPROXY}" | cut -d: -f1)
+    PROXY_PORT=$(echo "${ENVPROXY}" | cut -d: -f2)
+}
+getproxy
+-----
+
+ chmod 755 temp-ssh
+bash -x ./temp-ssh
+------------------------
+
+Linux commands
+------------------------
+
+How to download files
+
+Copy file to tmp folder
+Allow permission
+
+
+cp cloud-init-output.log /tmp
+ cd /tmp
+chmod 755 cloud-init-output.log
+
+
+ scp -i "kamikey12.pem" ubuntu@{server ip}:/tmp/cloud-init-output.log .  
+--------
+Tunnel to db
+
+ ssh -L <port>:<databasename>.rds.amazonaws.com:5432 tech-bastion-pl.cloud.{domain name} -v
+
+ssh -L localhost:21333:notification-aurora.cluster-ro-cobcrl6q3fak.us-east-1.rds.amazonaws.com:5432 bdk663@st-finance-qa-apps-financeplatform-ue1-bastion-ql.clouddqt.{domain name}
+--------
+
+Telnet test from within the ec2 instance
+
+telnet aws-proxy-cde.cloud.{domain name} 8099
+telnet github.cloud.{domain name} 80
+
+
+
+-----
+GitHub access token - oct 4-2022 - expires in Jan 2023
+
+
+NEW in dec2022
+
+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
+
+Expired
+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
+
+Old token expires on sept 28th
+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
+==================
+AWS architect role
+==================
+
+Avenue eg
+
+Attach policy
+
+avenue policy attach --policy-arn arn:aws:iam::862045033749:policy/CapOne-EC2-Policy-Dev --role-name Subnet-Exhaustion-Master-Role --profile 862045033749-GR_GG_COF_AWS_NP_CoreEngineering
+
+Detach policy
+
+
+# Validate a role named foo
+avenue role validate --role-name foo
+
+avenue role validate --role-name Subnet-Exhaustion-Master-Role --profile 862045033749-GR_GG_COF_AWS_NP_CoreEngineering
+
+
+avenue role validate --role-name Horizontal-Bastion-Hosts-Role-BastionRole-WR6P2D28R3U3 --profile 169158755531-GR_GG_COF_AWS_Prod_CoreEngineering
+avenue role validate --role-name BASTION-HOSTS-ROLE-BastionRole-10NJWOMVCG3T6 --profile 093937234853-GR_GG_COF_AWS_NP_CoreEngineering
+
+
+
+
+Error for non prod
+
+bmf325@909c4ac8ece3 downloads % avenue role validate --role-name BASTION-HOSTS-ROLE-BastionRole-10NJWOMVCG3T6 --profile 093937234853-GR_GG_COF_AWS_NP_CoreEngineering
+INFO[0000] Retrieving target account from caller identity
+INFO[0000] Using target account 093937234853 for Avenue Gateway session
+INFO[0000] Assuming role arn:aws:iam::116250504297:role/CapOne-Reserved-Avenue-Gateway-Role
+INFO[0000] Getting active region from DNS TXT: avenue.cof-st-core-ctls-prd-iam.aws.cb4good.com (attempt 1 of 3)
+ERRO[0000] AccessDenied: User: arn:aws:sts::093937234853:assumed-role/GR_GG_COF_AWS_NP_CoreEngineering/bmf325 is not authorized to perform: sts:TagSession on resource: arn:aws:iam::116250504297:role/CapOne-Reserved-Avenue-Gateway-Role with an explicit deny
+status code: 403, request id: cb9220dc-19c3-44d5-bc56-ed749400905f
+
+
+
+
+arn:aws:iam::093937234853:role/ASVPUBLICCLOUDBASTIONHOSTS/Horizontal-Bastion-Hosts-Role-BastionRole-WR6P2D28R3U3
+
+arn:aws:iam::169158755531:role/ASVPUBLICCLOUDBASTIONHOSTS/BASTION-HOSTS-ROLE-BastionRole-10NJWOMVCG3T6
+
+
+
+
+
+----------
+
+PULL TOKENS
+----------
+
+cloudsentry access get --account 169158755531 --force --browser firefox --ba asvpubliccloudbastionhosts
+
+
+
+
+
+------------------------
+DNS ROLE:
+
+***********HOST RECORD*************
+
+conf zone "" add host usmdb61203sd01-vl2.kdc.{domain name} {ip} view default comment Q2715389
+conf zone "" add host usmdb61203sd02-vl2.kdc.{domain name} {ip} view default comment Q2715389
+
+conf zone "" delete host usmdb61203sd01-vl2.kdc.{domain name}
+conf zone "" delete host usmdb61203sd01-vl2.kdc.{domain name}
+**********CNAME RECORD*************
+conf zone "" add cname servicese.{domain name} servicese.{domain name}.edgekey.net view default comment Q2715515
+conf zone "" add cname servicesw.{domain name} servicesw.{domain name}.edgekey.net view default comment Q2715515
+
+conf zone "" delete cname vdcproxy1.kdc.{domain name} vdcproxy1.wpin.{domain name}
+conf zone "" delete cname vdcproxy2.kdc.{domain name} vdcproxy2.wpin.{domain name}
+
+CNAME TTL
+
+
+conf zone capitalone.co.uk add cname littlewoods lw.aws-uk-cat1.capitalonegslbex.com set ttl=300 comment REQ0214168
+
+
+********a_rec******************
+
+conf zone "" delete a_record md2007rt1.hiberniabank.com {ip}
+conf zone "" delete a_record d2007sw1.hiberniabank.com 10.142.81.2
+
+********MODIFY IP****************
+NEWIP
+conf zone "" modify host nyman19sw21-vl301.kdc.{domain name} 10.223.174.1 view default comment Q2715389
+conf zone "" modify host nya388.atm.{domain name} 10.137.2.12 view default comment Q2776188
+new ip
+********TTL VALUE********
+
+conf zone "" add host mrdprc01.kdc.{domain name} 10.26.22.47 ttl 600 comment "Q2817442 IR006631903"
+
+
+
+Be advised that the syntax is different for HOST records as opposed to A, CNAME, TXT, and PTR records:
+ 
+
+conf zone kdc.{domain name} add HOST anyhost 10.10.10.10 ttl 3600 comment Q2678901
+conf zone "" add host mrdprc01.kdc.{domain name} 10.26.22.47 ttl 600 comment "Q2817442 IR006631903"
+
+ 
+
+conf zone kdc.{domain name} add CNAME anyhost anyhost.wpin.{domain name} set ttl=3600 comment Q2678901
+
+**********IBCLI FIXED addresses********
+
+*****modify FQDN*************
+
+conf zone "" modify host old-FQDN ip-address name new-FQDN
+
+********ACL in dqa.{domain name}*************************
+
+Refresher on IBCLI syntax for updating the dqa.{domain name} ACL:
+
+conf zone modify dqa.{domain name} set ad_servers=[10.6.39.96,10.6.39.97,10.6.39.98,10.6.39.99,10.6.39.100,10.6.39.101,10.6.39.102,10.6.39.103,10.6.39.104,10.6.39.105,10.6.39.106,10.6.39.107,10.6.39.108,10.6.39.109,10.6.39.110,10.6.39.111,10.6.39.112,10.6.39.113,10.6.39.114,10.6.39.115,10.6.39.116,10.6.39.117,10.6.39.118,10.6.39.119,10.6.39.120,10.6.39.121,10.6.39.122,10.6.39.123,10.6.39.124,10.6.39.125,10.6.39.126,10.6.39.127,10.6.39.128,10.6.39.129,10.6.39.130,10.6.39.131,10.6.39.132,10.6.39.133,10.6.39.134,10.6.39.135,10.6.39.136,10.6.39.137,10.6.39.138,10.6.39.139,10.6.39.140,10.6.39.141,10.6.39.142,10.6.39.143,10.6.108.192,10.6.108.193,10.6.108.194,10.6.108.195,10.6.108.196,10.6.108.197,10.6.108.198,10.6.108.199,10.6.108.200,10.6.108.201,10.6.108.202,10.6.108.203,10.6.108.204,10.6.108.205,10.6.108.206,10.6.108.207,10.6.108.208,10.6.108.209,10.6.108.210,10.6.108.211,10.6.108.212,10.6.108.213,10.6.108.214,10.6.108.215,10.6.108.216,10.6.108.217,10.6.108.218,10.6.108.219,10.6.108.220,10.6.108.221,10.6.108.222,10.6.108.223,10.6.108.224,10.6.108.225,10.6.108.226,10.6.108.227,10.6.108.228,10.6.108.229,10.6.108.230,10.6.108.231,10.6.108.232,10.6.108.233,10.6.108.234,10.6.108.235,10.6.108.236,10.6.108.237,10.6.108.238,10.6.108.239,10.6.108.240,10.6.108.241,10.6.108.242,10.6.108.243,10.6.108.244,10.6.108.245,10.6.108.246,10.6.108.247,10.6.108.248,10.6.108.249,10.6.108.250,10.6.108.251,10.6.108.252,10.6.108.253,10.6.108.254,10.6.108.255,10.8.145.48,10.8.145.49,10.15.64.11,10.15.64.12,10.15.64.28,10.15.64.29,10.25.64.11,10.25.64.12,10.186.139.96,10.186.139.97,10.186.139.98,10.186.139.99,10.186.139.100,10.186.139.101,10.186.139.102,10.186.139.103,10.186.139.104,10.186.139.105,10.186.139.106,10.186.139.107,10.186.139.108,10.186.139.109,10.186.139.110,10.186.139.111,10.186.139.112,10.186.139.113,10.186.139.114,10.186.139.115,10.186.139.116,10.186.139.117,10.186.139.118,10.186.139.119,10.186.139.120,10.186.139.121,10.186.139.122,10.186.139.123,10.186.139.124,10.186.139.125,10.186.139.126,10.186.139.127,10.186.139.128,10.186.139.129,10.186.139.130,10.186.139.131,10.186.139.132,10.186.139.133,10.186.139.134,10.186.139.135,10.186.139.136,10.186.139.137,10.186.139.138,10.186.139.139,10.186.139.140,10.186.139.141,10.186.139.142,10.186.139.143,172.22.130.144,172.22.130.145]
+
+************DHCP IP-MAC HOST****************
+
+conf zone "" add host canewportap12-01.kdc.{domain name} 10.216.240.68:44:48:C1:C2:EA:A4 view default comment Q2744107
+conf zone "" add host canewportap12-02.kdc.{domain name} 10.216.240.69:44:48:C1:C2:ED:A6 view default comment Q2744107
+
+
+**********IBCLI FIXED addresses********
+
+show net 10.143.98 fixed
+
+**********ATM ACL***************
+
+
+conf zone modify atm.{domain name} set ad_servers=[10.41.167.11,10.41.167.10,10.24.144.11,10.24.144.12,10.14.144.12,10.14.144.11,10.14.144.41,10.24.144.41,10.105.177.11,10.105.177.12,10.105.177.13,10.105.177.14] set allow_update=[10.41.167.11,10.41.167.10,10.24.144.11,10.24.144.12,10.14.144.12,10.14.144.11,10.14.144.41,10.24.144.41,10.105.177.11,10.105.177.12,10.105.177.13,10.105.177.14]
+
+***********EXternal A rec*************
+
+conf zone hrsecommerce.com delete A_Rec www 63.95.36.103
+conf zone hrsecommerce.com add A_Rec www 63.111.163.103 set ttl=600 comment "Q2826705 IR006631903"
+
+
+**********Changing DHCP environment***********
+
+conf net move 10.xx.xx.xx/nn member 10.102.46.50 member 10.104.46.50 failover CHI-SEA
+
+
+=====================================================================
+
+ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null bmf325@10.205.7.46@sts-psmp-ql.clouddqt.{domain name}
+
+======================================================================
+
+I've made a Python script that makes it way easier, _and_ preps a file for quick validation of the work too.
+The script and instructions for use can be found on the Ashburn jump server in /network/DNSOPS/BulkHost
+
+
+
+cat > 2720658
+ls - list
+pwd -  pwd
+mkdir (name directory)
+
+
+CD
+ for i in `awk '{print $6, $7}' 2720658`; do host $i;done
+
+
+
+/network/infoblox/ibcli.pl -s 10.37.215.253 -u bmf325
+
+
+
+
+
+$ awk '{print "conf zone \"\" " $4, $2, $1, $3, "comment Q272286"}' 2722886-r > 2722886-modh-x
+[inh072@vdcnms007 int]$ vi 2722886-modh-x
+
+
+$ awk '{print "$1"}' prod-rehydrations
+
+QAWS_CARD_Bastion_ACCS
+
+grep -i "type of req" REQ0197554 | awk '{print $5}'
+grep -i "record type" REQ0197554 | awk '{print $4}'
+grep -i "fqdn" REQ0197554 | awk '{print $7}'
+grep -i "ip address" Q2853974 | awk '{print $16}'
+
+for i in `awk '{print $1}' Q2826896-r`; do host $i; done
+for i in `awk '{print $4}' Q2826896-r`; do host $i; done
+
+for i in `cat ~/changes/0326-rte/int/2783588_sn`; do suffix -n $i >> 2783588_suffix_out; done  
+
+
+
+cat > 2722923-r
+
+for i in `awk '{print $1, $3}' 2722923-r`; do host $i; done}
+
+
+awk '{print "conf zone \"\" " $4, $2, $1, $3, "comment Q2722923"}' 2722923-r
+
+
+for DHCP configs validation
+
+sho net netowrk address of dhcp range and cidr block
+
+
+sho net network address of dhcp range and codr block range
+
+
+
+
+awk '{print "conf zone \"\" add host" $1, $2, "alias"
+
+
+
+
+
+==================================
+SNOW FLAKE
+=====================================
+select * from PIDW_SVM_RQST_LINE_ITEM_BC
+where RQST_ID = 'Q2748865';
+
+--------------------------------------------------------
+I have this for COs:
+select * from PIDW_SVM_CHNG_BC
+where CHNG_ID = 'C02263716'
+;
+
+and for finding quotes within a date range, specifying the assignment group which he mentioned:
+
+select * from PIDW_SVM_RQST_LINE_ITEM_BC
+where LINE_ITEM_ACTL_STRT_TS between  '2015-04-06'  and  '2015-04-14'
+and ASGNMT_GRP_NM in ('DATANETWORK_SUPPORT', 'DATANETWORK_OAS' )
+and ACTVY_TYPE_NM in('DNS', 'DHCP');
+
+
+cat /etc/resolv.conf
+
+------------------------------------
+
+ echo $PATH
+ls -l /network/infoblox
+
+
+------------------------------------
+
+
+merge files: drop your data in 2 separate files. then do
+
+paste -d" " Q2730222-r Q2730222-s
+
+in order to add the data to a file of its own do
+
+paste -d" " Q2730222-r Q2730222-s | cat > Q2730222-T
+
+
+
+TEST  CEREBRO cerebro.kdc.{domain name}.
+============================
+TEST: cerebro/ 10.255.204.31
+ibcli.pl -s 10.255.204.31 -u kshaukat /home/bmf325/20171211-15/Q2736008-D
+============================
+
+
+INTERNAL chiibxintgm
+===================================
+INTERNAL: chiibxintgm/ 10.102.0.88
+ibcli.pl -s 10.102.0.88 -u bmf325 /home/bmf325/REQ0201835
+===================================
+
+
+
+EXTERNALchiibxextgm chiibxextgm.kdc.{domain name}
+===================================
+EXTERNAL: chiibxextgm/ 10.102.0.101
+
+ibcli.pl -s 10.102.0.101 -u kshaukat /home/bmf325/
+===================================
+
+gdhcp | grep 10.210.112.0 < when looking up DHCP scopes
+
+iproxy
+workon google
+cd /network/envs/google
+
+
+iproxy
+workon azure
+cd /network/envs/azure
+
+
+
+
+
+2747545
+DNS is an enterprise service which does not support an environment where proposed changes can be queried for testing. This is a routine change which has been performed repeatedly without incident, and all changes can be quickly reverted with an approved contingency plan if requesters require a backout.
+
+
+
+
+------------------------
+Flow log.sh
+
+#!/bin/bash
+
+
+## declare an array variable
+declare -a arr=("s3delivery/AWSLogs/004880074779/vpcflowlogs/us-east-1/2023/01/01/004880074779_vpcflowlogs_us-east-1_fl-00e645ef85b058030_20230101T0000Z_08fe936b.log.gz"
+"s3delivery/AWSLogs/004880074779/vpcflowlogs/us-east-1/2023/01/01/004880074779_vpcflowlogs_us-east-1_fl-00e645ef85b058030_20230101T0000Z_156510fb.log.gz")
+
+## now loop through the above array
+for i in "${arr[@]}"
+do
+   echo "Downloading $i"
+   aws s3 cp s3://cof-c7n-flow-logs-us-east-1/$i . --profile 859967345373-GR_GG_COF_AWS_CoreEngineering
+done
+
+
+
+--------
+SG dependency
+
+#REGION="us-west-2"
+REGION="us-east-1"
+#ROLE="GR_GG_COF_AWS_NP_CoreEngineering"
+#ROLE="GR_GG_COF_AWS_Prod_CoreEngineering"
+ROLE="GR_GG_COF_AWS_CoreEngineering"
+ACCOUNTS=963006543740
+
+SGs=(
+sg-713fba06
+)
+
+
+
+#cloudsentry access get --all --force --browser firefox --ba asvpubliccloudbastionhosts
+cloudsentry access get --account $ACCOUNTS --force --ba asvpubliccloudbastionhosts
+sleep 3
+for i in "${SGs[@]}"; do
+aws ec2 describe-network-interfaces --filters Name=group-id,Values=$i --profile $ACCOUNTS-$ROLE --region $REGION --output table > $i.txt ;
+aws ec2 describe-security-groups --group-ids $i --profile $ACCOUNTS-$ROLE --region $REGION --output table >>$i.txt
+#aws ec2 delete-security-group --group-id $i --profile $ACCOUNTS-$ROLE --region $REGION
+
+echo verified $i, copied to $i.txt
+echo "=================================================="
+done
